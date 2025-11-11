@@ -1,0 +1,270 @@
+{
+  "name": "Abandoned Cart Recovery",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1D3sTDz8yG7ei-fCRMbQgSveLa-L8gbb-MgejNDcoKTw",
+          "mode": "list",
+          "cachedResultName": "Abandoned Cart Recovery",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1D3sTDz8yG7ei-fCRMbQgSveLa-L8gbb-MgejNDcoKTw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1D3sTDz8yG7ei-fCRMbQgSveLa-L8gbb-MgejNDcoKTw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        -80
+      ],
+      "id": "548bc182-5057-4db4-8785-219fbe02d548",
+      "name": "CRM Update",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "QjK3CFKkREAykiQj",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1D3sTDz8yG7ei-fCRMbQgSveLa-L8gbb-MgejNDcoKTw",
+          "mode": "list",
+          "cachedResultName": "Abandoned Cart Recovery",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1D3sTDz8yG7ei-fCRMbQgSveLa-L8gbb-MgejNDcoKTw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1D3sTDz8yG7ei-fCRMbQgSveLa-L8gbb-MgejNDcoKTw/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "checkout_status",
+              "lookupValue": "pending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -736,
+        -112
+      ],
+      "id": "f57a9fe2-a8ac-4599-9d7d-539979db8c81",
+      "name": "Checkout Cart Items",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9oTt6tDKBtK11NWX",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b102f7dc-612a-47ec-8a84-c5aadb844e1c",
+              "leftValue": "={{ $json.updatedAtDate }}",
+              "rightValue": "={{ $json.oneHourAgo }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        -64
+      ],
+      "id": "b1a6a22f-e177-4d62-a7d3-fc110e0aaf7a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Checkout Cart Items').item.json.email }}",
+        "subject": "=\"Hey \" + {{ $('Checkout Cart Items').item.json.name }} + \", your cart is waiting!\"",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        112
+      ],
+      "id": "68f961ca-1607-416e-af7c-f9b8bbf30474",
+      "name": "Send a message",
+      "webhookId": "b7937d44-e198-47ee-ab3b-39bc95fcc204",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "nmUCuQWJCGO057eC",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert eCommerce copywriter.\n\nWrite a friendly and personalized abandoned-cart reminder email for a customer based on the provided data.\n\nThe email should:\n- Be conversational and warm (not robotic)\n- Include a reminder about their cart items\n- Mention a small discount (e.g., 10%)\n- Include the cart link clearly as a call-to-action button or sentence\n- End with a friendly sign-off from \"Your Store Team\"\n\nCustomer data:\nName: {{ $('CRM Update').item.json.name }}\nEmail: {{ $('CRM Update').item.json.email }}\nCart items: {{ $('CRM Update').item.json.cart_items }}\nCart link: {{ $('CRM Update').item.json.cart_link }}\nCheckout status: {{ $('CRM Update').item.json.checkout_status }}\nLast updated: {{ $('CRM Update').item.json.updated_at }}\nOutput the email in HTML format with:\n- Greeting using their name\n- Paragraphs for readability\n- A “Complete Your Purchase” button linking to their cart\n- Short and clear closing.\nMkae suer do not use backtics like html ```````",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        -160
+      ],
+      "id": "53546392-5cd3-48ad-a0db-9d2c19a80be0",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        112
+      ],
+      "id": "86bfe1f2-bebe-4957-be01-a490f4ae8d45",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ocLZ1Wn2fepxSghz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "items.forEach(item => {\n  // Convert updated_at string to Date\n  item.json.updatedAtDate = new Date(item.json.updated_at);\n\n  // Current time minus 1 hour\n  item.json.oneHourAgo = new Date(Date.now() - 1*60*60*1000);\n});\nreturn items;\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        -160
+      ],
+      "id": "4e066133-2162-4f13-8cce-b0833029cd8a",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "CRM Update": {
+      "main": [
+        [
+          {
+            "node": "Checkout Cart Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Checkout Cart Items": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "57541875-04b3-479a-9da0-0623af5674df",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0c9534dee5af285a19322bb814f5a8c04e86de07adb80778225cfb99eb98a8c8"
+  },
+  "id": "uT41sQrwBf2COteT",
+  "tags": []
+}
