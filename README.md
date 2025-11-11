@@ -1,6 +1,6 @@
 # Abandoned Cart Recovery Workflow (n8n + AI)
 
-This project provides an **automated abandoned cart recovery workflow** using [n8n](https://n8n.io/) and an AI language model (Google Gemini / OpenAI). It helps eCommerce stores recover sales by sending **personalized reminder emails** to customers who left items in their shopping cart.
+This project provides an **automated abandoned cart recovery workflow** using [n8n](https://n8n.io/) and an AI language model (Google Gemini). It helps eCommerce stores recover sales by sending **personalized reminder emails** to customers who left items in their shopping cart.
 
 ## Features
 
